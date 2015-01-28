@@ -1,0 +1,61 @@
+W205, Section 4
+Mingham Wu
+26 January 2015
+
+################################################################################
+1. How long did it take to run the process for each of these?
+
+'time' output for local execution:
+
+real	1m27.745s
+user	1m27.090s
+sys	0m2.330s
+
+'time' output for Amazon EMR:
+
+real	18m51.028s
+user	0m2.070s
+sys	0m0.120s
+
+The longer real time probably represents the fixed overhead in getting the
+proceses distributed and running on EMR, but for very large datasets, the 'real'
+time for a EMR run will probably be orders of magnitude shorter than running
+the same set locally.
+
+################################################################################
+2. How many address tags are there in the input?
+
+5140
+
+################################################################################
+3. Does the local version and EMR version give the same answer?
+
+The local version created two output files:
+  part-00000
+  part-00001
+
+while the EMR version created 3:
+  part-00000
+  part-00001
+  part-00002
+along with an empty '_SUCCESS' file
+
+Concatenating and contents of two sets of 'part-0000*' files:
+
+  cat ./emr-out/part-0000* > emr-out.cat.txt
+  cat ./out/part-0000* > local-out.cat.txt
+
+The file sizes are identical but executing 'diff', it appears they're not
+identical:
+
+  diff ./emr-out.cat.txt local-out.cat.txt
+
+Sorting the two files and repeating the diff indicates that the counts
+contained within the files are the same:
+
+  sort emr-out.cat.txt > emr-out.cat.txt.sorted
+  sort local-out.cat.txt > local-out.cat.txt.sorted
+
+  diff emr-out.cat.txt.sorted local-out.cat.txt.sorted
+
+The 'diff' printed no output lines.
